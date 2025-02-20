@@ -127,28 +127,31 @@ pub fn matmul_transb(c: &mut Tensor<f32>, beta: f32, a: &Tensor<f32>, b: &Tensor
     assert_eq!(b_shape.len(), 2, "B must be a 2D matrix");
     assert_eq!(c_shape.len(), 2, "C must be a 2D matrix");
 
-    let m: usize = a_shape[0];
-    let k: usize = a_shape[1];
-    let n: usize = b_shape[0];
+    let a_x: usize = a_shape[0];
+    let a_y: usize = a_shape[1];
+    let b_x: usize = b_shape[0];
+    let b_y: usize = b_shape[1];
+    let c_x: usize = c_shape[0];
+    let c_y: usize = c_shape[1];
 
-    assert_eq!(b_shape[1], k, "A's columns must match B's rows");
+    assert_eq!(b_y, a_y, "A's columns must match B's rows");
     assert!(
-        c_shape[0] == m && c_shape[1] == n,
-        "C's shape must be (m, n)"
+        c_x == a_x && c_y == b_x, // \alpha*(a_x, a_y)*(b_y, b_x) + \beta*(c_x, c_y)
+        "C's shape must be (a_x, b_x)"
     );
 
     let a_data = a.data();
     let b_data = b.data();
     let c_data = unsafe { c.data_mut() };
 
-    for i in 0..m {
-        for j in 0..n {
+    for i in 0..a_x {
+        for j in 0..b_x {
             let mut dot_product = 0.0;
-            for l in 0..k {
-                dot_product += a_data[i * k + l] * b_data[j * k + l];
+            for l in 0..a_y {
+                dot_product += a_data[i * a_y + l] * b_data[j * a_y + l];
             }
 
-            let index = i * n + j;
+            let index = i * b_x + j;
             c_data[index] = alpha * dot_product + beta * c_data[index];
         }
     }

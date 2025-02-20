@@ -2,3 +2,5 @@
 Cargo.lock
 .vscode
 .idea
+/models/chat
+/models/TinyLlama-1.1B-Chat-v0.4
